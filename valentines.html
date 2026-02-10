@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Evidence Of Love</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+    margin:0;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-family:'Inter', sans-serif;
+    background: radial-gradient(circle at center, #3b0000, #120000 80%);
+    color:#f5eaea;
+    overflow:hidden;
+}
+
+/* Container for VN story */
+.container{
+    width:90%;
+    max-width:800px;
+    text-align:center;
+    padding:40px;
+    transition:0.8s ease-in-out;
+    position:relative;
+    z-index:10; /* Higher than background, lower than ending */
+}
+
+h1{
+    font-family:'Cormorant Garamond';
+    font-size:3rem;
+    margin-bottom:20px;
+}
+
+p{
+    font-size:1.2rem;
+    line-height:1.8;
+    min-height:120px;
+}
+
+.scene-img{
+    width:100%;
+    max-height:420px;
+    object-fit:cover;
+    border-radius:12px;
+    margin:25px 0;
+    opacity:0;
+    transform:scale(1.05);
+    transition:1.2s ease;
+    box-shadow:0 0 40px rgba(0,0,0,0.7);
+    display:none; /* Hidden by default */
+}
+
+.scene-img.show{
+    opacity:1;
+    transform:scale(1);
+}
+
+button{
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.4);
+    padding:12px 35px;
+    color:#fff;
+    letter-spacing:2px;
+    cursor:pointer;
+    margin-top:20px;
+    transition:0.4s;
+    opacity:0;
+    pointer-events:none;
+}
+
+button.show{
+    opacity:1;
+    pointer-events:auto;
+}
+
+button:hover{
+    background:#7a0000;
+}
+
+.blur{
+    filter:blur(8px);
+    opacity:0;
+}
+
+/* GOLD PARTICLES */
+.particle{
+    position:fixed;
+    width:6px;
+    height:6px;
+    background:gold;
+    border-radius:50%;
+    opacity:0.7;
+    animation:float 6s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes float{
+    0%{transform:translateY(100vh);}
+    100%{transform:translateY(-10vh);}
+}
+
+/* ENDING MEMORY BOARD */
+#memoryBoard{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    align-content: center;
+    flex-wrap: wrap;
+    gap:15px;
+    z-index:20; /* Sit on top of everything */
+    opacity:0;
+    transition:2s;
+    pointer-events: none;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto; /* Allow scrolling if too many photos */
+}
+
+#memoryBoard.show{
+    opacity:1;
+    pointer-events: auto;
+}
+
+.memoryPolaroid{
+    width:140px;
+    height:160px;
+    background:white;
+    padding: 10px 10px 30px 10px; /* Polaroid padding */
+    box-sizing: border-box;
+    border-radius:2px;
+    box-shadow:0 10px 20px rgba(0,0,0,0.5);
+    transform:scale(0.8) rotate(var(--r));
+    transition:1.2s ease;
+    opacity: 0;
+}
+
+.memoryPolaroid.show{
+    transform:scale(1) rotate(var(--r));
+    opacity: 1;
+}
+
+.memoryPolaroid img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    background-color: #ddd; /* Placeholder color if image missing */
+}
+
+/* ENDING HEADLINE */
+#endingHeadline{
+    position:fixed;
+    top:10%;
+    width:100%;
+    text-align:center;
+    font-family:'Cormorant Garamond';
+    font-size:3rem;
+    opacity:0;
+    transition:2s;
+    color:#ffd1d1;
+    z-index:25;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.8);
+}
+
+#endingHeadline.show{
+    opacity:1;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 600px) {
+    .memoryPolaroid {
+        width: 100px;
+        height: 120px;
+        padding: 5px 5px 20px 5px;
+    }
+    h1 { font-size: 2rem; }
+    #endingHeadline { top: 5%; font-size: 2rem; }
+}
+
+</style>
+</head>
+
+<body>
+
+<audio id="bgMusic" loop>
+<source src="song.mp3">
+</audio>
+
+<div class="container" id="container">
+    <h1 id="title"></h1>
+    <img id="sceneImg" class="scene-img">
+    <p id="storyText"></p>
+    <button onclick="nextScene()" id="nextBtn">Continue</button>
+</div>
+
+<h1 id="endingHeadline">Our Memories</h1>
+<div id="memoryBoard"></div>
+
+<script>
+
+/* BACKGROUND PARTICLES */
+for(let i=0;i<30;i++){
+    let p=document.createElement("div");
+    p.className="particle";
+    p.style.left=Math.random()*100+"%";
+    p.style.animationDuration=(4+Math.random()*6)+"s";
+    document.body.appendChild(p);
+}
+
+/* STORY DATA */
+const scenes = [
+    {title:"Evidence Of Love",
+    text:"They say that every great story has a beginning, a middle, and an end. But with us, it feels like we’re just getting started on a book I never want to put down. This is a little corner of the digital world dedicated to us, the big milestones, the quiet moments, and everything in between. Welcome to our story. I’m so glad you’re the lead character."},
+
+    {title:"Where It Started",
+    text:"Our paths crossed in the most unexpected way, and looking back, I realize that random moment was actually the start of my favorite chapter. I had no idea that a chance meeting would turn into a lifetime of meaning.",
+    img:"photo1.jpg"},
+
+    {title:"Growing Into Us",
+    text:"Between conversations, laughter, and simple moments together... you slowly became someone I couldn’t imagine my days without.",
+    img:"photo2.jpg"},
+
+    {title:"The Little Things",
+    text:"It’s not just the big memories I treasure... it’s the small ones. The random laughs. The comfortable silence. The way you make ordinary days feel special.",
+    img:"photo3.jpg"},
+
+    {title:"Another Chapter",
+    text:"Our anniversary is coming soon... and it made me realize how every moment with you feels like another beautiful chapter being written."},
+
+    {title:"",
+    text:"So I wanted to ask you something important..."},
+
+    {title:"",
+    text:"In this month of love, there is no milestone more meaningful than our anniversary. Can I take you out to celebrate the beautiful life we are building together?",
+    choice:true},
+
+    {title:"",
+    text:"I love you."},
+
+    {title:"",
+    text:"Let’s keep writing our story together... one chapter at a time.",
+    final:true}
+];
+
+let index = 0;
+let typingTimeout;
+let musicStarted = false;
+
+const title=document.getElementById("title");
+const text=document.getElementById("storyText");
+const img=document.getElementById("sceneImg");
+const btn=document.getElementById("nextBtn");
+const container=document.getElementById("container");
+const music=document.getElementById("bgMusic");
+const endingHeadline=document.getElementById("endingHeadline");
+const memoryBoard=document.getElementById("memoryBoard");
+
+/* TYPEWRITER EFFECT */
+function typeWriter(str,i=0){
+    if(i<str.length){
+        text.innerHTML+=str.charAt(i);
+        typingTimeout=setTimeout(()=>typeWriter(str,i+1),55);
+    }else{
+        btn.classList.add("show");
+    }
+}
+
+/* LOAD SCENE FUNCTION */
+function loadScene(){
+    let scene=scenes[index];
+
+    btn.classList.remove("show");
+    clearTimeout(typingTimeout);
+
+    title.innerHTML=scene.title || ""; // Handle empty titles
+    text.innerHTML="";
+
+    // Image handling
+    if(scene.img){
+        img.src=scene.img;
+        img.style.display="block";
+        setTimeout(()=>img.classList.add("show"),100);
+    }else{
+        img.classList.remove("show");
+        setTimeout(()=>img.style.display="none",500);
+    }
+
+    typeWriter(scene.text);
+
+    // Button Logic
+    if(scene.choice){
+        btn.innerHTML="Yes";
+    }else if(scene.final){
+        btn.innerHTML="❤️";
+    }else{
+        btn.innerHTML="Continue";
+    }
+}
+
+/* POLAROID MEMORY BOARD GENERATOR */
+function createMemoryBoard(photoArray){
+    memoryBoard.innerHTML = ""; // Clear just in case
+    
+    photoArray.forEach(src=>{
+        let pol=document.createElement("div");
+        pol.className="memoryPolaroid";
+        
+        // Random slight rotation for realism
+        let rot = (Math.random() * 10) - 5; 
+        pol.style.setProperty('--r', rot + 'deg');
+
+        pol.innerHTML=`<img src="${src}" onerror="this.style.backgroundColor='#pink'">`;
+        memoryBoard.appendChild(pol);
+        
+        // Staggered animation
+        setTimeout(()=>pol.classList.add("show"), Math.random() * 500 + 200);
+    });
+    
+    memoryBoard.classList.add("show");
+}
+
+/* MUSIC FADE */
+function fadeMusic(target,duration=3000){
+    let step=(target-music.volume)/(duration/50);
+    let interval=setInterval(()=>{
+        if(music.volume + step < 0 || music.volume + step > 1) {
+             clearInterval(interval);
+             return;
+        }
+        music.volume+=step;
+        if((step>0 && music.volume>=target)||(step<0 && music.volume<=target)){
+            music.volume=target;
+            clearInterval(interval);
+        }
+    },50);
+}
+
+/* MAIN NAVIGATION FUNCTION */
+function nextScene(){
+    
+    /* Music Start Logic */
+    if(!musicStarted){
+        music.volume=0;
+        music.play().catch(e => console.log("User must interact first"));
+        fadeMusic(0.35,3000);
+        musicStarted=true;
+    }
+
+    /* "Yes" Button Logic */
+    if(scenes[index].choice){
+        fadeMusic(0.6,2000);
+    }
+
+    /* FINAL SCENE TRIGGER */
+    if(scenes[index].final){
+        
+        // 1. Fade out the story container so we can see the photos
+        container.style.opacity = "0";
+        container.style.pointerEvents = "none";
+
+        // 2. Show the ending headline
+        endingHeadline.classList.add("show");
+
+        // 3. Spawn extra particles
+        for(let i=0;i<25;i++){
+            let p=document.createElement("div");
+            p.className="particle";
+            p.style.left=Math.random()*100+"vw";
+            p.style.animationDuration=(4+Math.random()*4)+"s";
+            document.body.appendChild(p);
+        }
+
+        // 4. Load the Polaroid Photos
+        // ENSURE THESE FILE NAMES MATCH YOUR FILES EXACTLY
+        let polaroidPhotos=[
+            "photo1.jpg", "photo2.jpg", "photo3.jpg",
+            "photo4.jpg", "photo5.jpg", "photo6.jpg",
+            "photo7.jpg", "photo8.jpg", "photo9.jpg"
+        ]; 
+
+        createMemoryBoard(polaroidPhotos);
+        
+        // Hide button
+        btn.style.display="none";
+        return;
+    }
+
+    /* Normal Scene Transition */
+    container.classList.add("blur");
+    setTimeout(()=>{
+        index++;
+        container.classList.remove("blur");
+        loadScene();
+    },700);
+}
+
+// Start
+loadScene();
+
+</script>
+
+</body>
+</html>
